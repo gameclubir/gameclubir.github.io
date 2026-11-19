@@ -45,7 +45,7 @@ async function enter(user) {
 }
 
 async function reloadAll() {
-  await Promise.all([loadGames(), loadSocial(), loadLogoPreview(), loadContact()]);
+  await Promise.all([loadGames(), loadSocial(), loadLogoPreview(), loadContact(), loadUsers()]);
   loadLogo();
 }
 
@@ -296,6 +296,48 @@ async function onSocialClick(e) {
     if (error) return err(error);
   }
   loadSocial();
+}
+
+let USERS = [];
+
+async function loadUsers() {
+  const { data, error } = await sb
+    .from("profiles")
+    .select("id,email,display_name,language,created_at,last_seen")
+    .order("created_at", { ascending: false })
+    .limit(1000);
+  if (error) return err(error);
+  USERS = data || [];
+  renderUsers();
+}
+
+function renderUsers() {
+  const day = 86400000;
+  const now = Date.now();
+  const seenAgo = (u) => (u.last_seen ? now - Date.parse(u.last_seen) : Infinity);
+  const createdAgo = (u) => now - Date.parse(u.created_at);
+  const stats = [
+    ["کل کاربران", USERS.length],
+    ["ثبت‌نام در ۷ روز اخیر", USERS.filter((u) => createdAgo(u) <= 7 * day).length],
+    ["فعال در ۲۴ ساعت اخیر", USERS.filter((u) => seenAgo(u) <= day).length],
+    ["فعال در ۷ روز اخیر", USERS.filter((u) => seenAgo(u) <= 7 * day).length],
+  ];
+  $("#user-stats").innerHTML = stats
+    .map(([l, v]) => `<div class="glass stat"><b>${num(v)}</b><span class="muted">${l}</span></div>`)
+    .join("");
+  $("#users-table").innerHTML = USERS.length
+    ? USERS.slice(0, 200)
+        .map(
+          (u) => `<tr>
+          <td>${esc(u.display_name || "—")}</td>
+          <td class="ltr">${esc(u.email || "—")}</td>
+          <td>${esc(new Date(u.created_at).toLocaleDateString("fa-IR"))}</td>
+          <td>${u.last_seen ? esc(new Date(u.last_seen).toLocaleString("fa-IR")) : "—"}</td>
+          <td>${esc(u.language || "—")}</td>
+        </tr>`
+        )
+        .join("")
+    : `<tr><td colspan="5" class="empty">هنوز کاربری ثبت‌نام نکرده است.</td></tr>`;
 }
 
 function showTab(name) {

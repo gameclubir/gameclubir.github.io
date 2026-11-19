@@ -23,7 +23,7 @@ const LANGS = [
 
 const STRINGS = {
   en: {
-    home: "Home", library: "Library", ai: "AI Assistant", admin: "Admin", search: "Search games…",
+    home: "Home", library: "Library", ai: "AI Assistant", profile: "Profile", admin: "Admin", search: "Search games…",
     hero_title: "Welcome to GAME CLUB", hero_text: "A curated game library with system requirements, a gallery and an AI assistant.",
     btn_library: "Browse library", btn_ai: "AI assistant", categories: "Categories", featured: "Featured", popular: "Popular",
     recent: "Recently added", recommended: "Recommended", stats: "Stats", activity: "Top categories", other_platforms: "Other platforms",
@@ -34,7 +34,7 @@ const STRINGS = {
     cat_shooting: "Shooter", cat_simulation: "Simulation", cat_strategy: "Strategy", cat_rpg: "RPG", cat_open_world: "Open world",
   },
   fa: {
-    home: "خانه", library: "کتابخانه", ai: "هوش مصنوعی", admin: "مدیریت", search: "جستجوی بازی‌ها…",
+    home: "خانه", library: "کتابخانه", ai: "هوش مصنوعی", profile: "پروفایل", admin: "مدیریت", search: "جستجوی بازی‌ها…",
     hero_title: "به GAME CLUB خوش آمدید", hero_text: "کتابخانه‌ای از بازی‌های منتخب با نیازمندی‌های سیستم، گالری و دستیار هوشمند.",
     btn_library: "مشاهده کتابخانه", btn_ai: "دستیار هوشمند", categories: "دسته‌بندی‌ها", featured: "ویژه", popular: "محبوب",
     recent: "تازه اضافه‌شده", recommended: "پیشنهادی", stats: "آمار", activity: "دسته‌های پرتعداد", other_platforms: "پلتفرم‌های دیگر",
@@ -243,7 +243,7 @@ const LANG = (() => {
 })();
 
 function t(key) {
-  return (STRINGS[LANG] && STRINGS[LANG][key]) || STRINGS.fa[key] || key;
+  return (STRINGS[LANG] && STRINGS[LANG][key]) || STRINGS.en[key] || STRINGS.fa[key] || key;
 }
 
 function setLang(code) {

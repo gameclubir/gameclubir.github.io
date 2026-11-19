@@ -23,6 +23,7 @@ function notice(msg, isError = true) {
 const NAV = [
   ["index.html", "home"],
   ["games.html", "library"],
+  ["profile.html", "profile"],
   ["admin.html", "admin"],
 ];
 
@@ -175,9 +176,19 @@ async function initHome() {
 
 const PAGES = { home: initHome };
 
+async function touchLastSeen() {
+  if (!sb) return;
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) return;
+  await sb.from("profiles").update({ last_seen: new Date().toISOString() }).eq("id", session.user.id);
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   renderShell();
-  if (CONFIGURED) loadLogo();
+  if (CONFIGURED) {
+    loadLogo();
+    touchLastSeen();
+  }
   const init = PAGES[document.body.dataset.page];
   if (init) init();
 });

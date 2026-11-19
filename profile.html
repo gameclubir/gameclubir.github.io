@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>GAME CLUB — پروفایل</title>
+  <meta name="description" content="GAME CLUB — ورود، ثبت‌نام و تنظیمات پروفایل">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="pages.css">
+</head>
+<body data-page="profile">
+  <div class="app">
+    <aside id="rail" class="rail glass"></aside>
+    <div class="content">
+      <header class="topbar" style="justify-content:flex-end">
+        <select id="lang" class="lang glass" aria-label="language"></select>
+      </header>
+      <div id="notice" class="notice hidden"></div>
+
+      <section id="view-guest" class="glass login hidden">
+        <h2>ورود به حساب</h2>
+        <form id="login-form">
+          <label>ایمیل<input type="email" name="email" required autocomplete="username"></label>
+          <label>رمز عبور<input type="password" name="password" required autocomplete="current-password"></label>
+          <button class="btn" type="submit">ورود</button>
+        </form>
+        <hr>
+        <h2>ساخت حساب جدید</h2>
+        <form id="signup-form">
+          <label>نام نمایشی<input name="display_name" required maxlength="40"></label>
+          <label>ایمیل<input type="email" name="email" required autocomplete="email"></label>
+          <label>رمز عبور (حداقل ۶ کاراکتر)<input type="password" name="password" required minlength="6" autocomplete="new-password"></label>
+          <button class="btn ghost" type="submit">ثبت‌نام</button>
+        </form>
+      </section>
+
+      <div id="view-me" class="hidden">
+        <section class="glass section">
+          <h2>پروفایل من</h2>
+          <p class="muted" id="me-email"></p>
+          <form id="name-form" class="form-grid">
+            <label>نام نمایشی<input name="display_name" required maxlength="40"></label>
+            <div class="full"><button class="btn" type="submit">ذخیره نام</button></div>
+          </form>
+        </section>
+
+        <section class="glass section">
+          <h2>تنظیمات ظاهری</h2>
+          <form id="lang-form" class="form-grid">
+            <label>زبان سایت<select id="pref-lang"></select></label>
+            <div class="full"><button class="btn" type="submit">ذخیره زبان</button></div>
+          </form>
+        </section>
+
+        <section class="glass section">
+          <button class="btn danger" id="logout" type="button">خروج از حساب</button>
+        </section>
+      </div>
+    </div>
+  </div>
+  <nav id="mnav" class="mobile-nav glass"></nav>
+
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="i18n.js"></script>
+  <script src="i18n-extra.js"></script>
+  <script src="app.js"></script>
+  <script src="profile.js"></script>
+</body>
+</html>
