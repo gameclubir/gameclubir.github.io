@@ -1,6 +1,7 @@
 /* GAME CLUB — ۱۸ زبان (پیش‌فرض: فارسی). زبان‌های راست‌به‌چپ: فارسی، عبری، اردو. */
 const LANGS = [
   { code: "fa", name: "فارسی", dir: "rtl" },
+  { code: "en", name: "English", dir: "ltr" },
   { code: "zh", name: "中文", dir: "ltr" },
   { code: "ja", name: "日本語", dir: "ltr" },
   { code: "ko", name: "한국어", dir: "ltr" },
@@ -21,6 +22,17 @@ const LANGS = [
 ];
 
 const STRINGS = {
+  en: {
+    home: "Home", library: "Library", ai: "AI Assistant", admin: "Admin", search: "Search games…",
+    hero_title: "Welcome to GAME CLUB", hero_text: "A curated game library with system requirements, a gallery and an AI assistant.",
+    btn_library: "Browse library", btn_ai: "AI assistant", categories: "Categories", featured: "Featured", popular: "Popular",
+    recent: "Recently added", recommended: "Recommended", stats: "Stats", activity: "Top categories", other_platforms: "Other platforms",
+    total_games: "Total games", avg_rating: "Average rating", updates: "Latest added", no_games: "No games have been added yet.",
+    no_links: "No links have been set.", all: "All", setup_needed: "The backend is not set up yet. Fill in config.js (see README).",
+    error: "Something went wrong. Please try again.",
+    cat_action: "Action", cat_adventure: "Adventure", cat_racing: "Racing", cat_sports: "Sports", cat_horror: "Horror",
+    cat_shooting: "Shooter", cat_simulation: "Simulation", cat_strategy: "Strategy", cat_rpg: "RPG", cat_open_world: "Open world",
+  },
   fa: {
     home: "خانه", library: "کتابخانه", ai: "هوش مصنوعی", admin: "مدیریت", search: "جستجوی بازی‌ها…",
     hero_title: "به GAME CLUB خوش آمدید", hero_text: "کتابخانه‌ای از بازی‌های منتخب با نیازمندی‌های سیستم، گالری و دستیار هوشمند.",

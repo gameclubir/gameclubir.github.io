@@ -1,5 +1,21 @@
 /* GAME CLUB — رشته‌های تکمیلی صفحات کتابخانه، جزئیات بازی و هوش مصنوعی (۱۸ زبان) */
 const EXTRA_STRINGS = {
+  en: {
+    results_count: "{n} games", no_results: "No games match these filters.", sort: "Sort", sort_newest: "Newest",
+    sort_rating: "Top rated", sort_title: "Title", back: "Back", store: "Official store", download: "Download", media: "Media",
+    requirements: "System requirements", minimum: "Minimum", recommended_req: "Recommended", os: "Operating system", cpu: "Processor",
+    gpu: "Graphics card", ram: "RAM", storage: "Storage", developer: "Developer", year: "Release year", rating: "Rating",
+    size: "Size", platforms: "Platforms", description: "Description", no_media: "No media has been added.", not_found: "This game was not found.",
+    ai_title: "GAME CLUB AI Assistant", ai_sub: "Game suggestions from our real library and a compatibility check for your PC",
+    rec_title: "Game recommender", pc_title: "PC compatibility check", genres: "Favourite genres",
+    gameplay: "Play style (e.g. competitive, story)", interests: "Interests or favourite games", mode: "Play mode",
+    mode_solo: "Single player", mode_multi: "Multiplayer", mode_both: "Both", submit_rec: "Get suggestions", submit_pc: "Check compatibility",
+    game_label: "Game", status_below: "Your system does not meet the minimum requirements for this game.",
+    status_min: "Your system meets the minimum requirements; you may face performance limits.",
+    status_rec: "Your system meets the recommended requirements.", limit_note: "This result does not guarantee any FPS.",
+    level_below: "Below minimum", level_min: "Minimum", level_rec: "Recommended", level_unknown: "Unknown",
+    rec_none: "No suggestions found; try selecting more genres.", ai_wait: "Analyzing…",
+  },
   fa: {
     results_count: "{n} بازی", no_results: "بازی‌ای با این فیلترها پیدا نشد.", sort: "مرتب‌سازی", sort_newest: "جدیدترین",
     sort_rating: "بالاترین امتیاز", sort_title: "عنوان", back: "بازگشت", store: "فروشگاه رسمی", download: "دانلود", media: "رسانه",
