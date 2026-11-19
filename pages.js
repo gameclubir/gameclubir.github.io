@@ -121,7 +121,6 @@ async function initGame() {
 
     <div class="game-stack">
       <section class="glass panel">
-        <h2>${esc(t("media"))}</h2>
         ${mediaBody}
       </section>
       <section class="glass panel">
