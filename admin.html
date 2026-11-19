@@ -35,17 +35,19 @@
           <button class="btn ghost sm" id="logout" type="button">خروج</button>
         </div>
 
+        <nav class="admin-tabs">
+          <button class="btn sm tab-btn active" data-tab="games" type="button">بازی‌ها</button>
+          <button class="btn sm ghost tab-btn" data-tab="look" type="button">ظاهر سایت</button>
+          <button class="btn sm ghost tab-btn" data-tab="contact" type="button">تماس</button>
+        </nav>
+
         <section class="stats" id="stats"></section>
 
+        <div class="tab-panel" data-panel="games">
         <div class="admin-grid">
           <div class="glass section">
             <h2>دسته‌بندی‌ها</h2>
             <div id="cat-stats"></div>
-          </div>
-          <div class="glass section">
-            <h2>لوگوی سایت</h2>
-            <div id="logo-preview" class="logo-preview"></div>
-            <input type="file" id="logo-file" accept="image/*">
           </div>
         </div>
 
@@ -120,6 +122,14 @@
             </div>
           </form>
         </section>
+        </div>
+
+        <div class="tab-panel hidden" data-panel="look">
+        <section class="glass section">
+          <h2>لوگوی سایت</h2>
+          <div id="logo-preview" class="logo-preview"></div>
+          <input type="file" id="logo-file" accept="image/*">
+        </section>
 
         <section class="glass section">
           <h2>پلتفرم‌های دیگر</h2>
@@ -146,6 +156,17 @@
             </table>
           </div>
         </section>
+        </div>
+
+        <div class="tab-panel hidden" data-panel="contact">
+        <section class="glass section">
+          <h2>شماره تماس</h2>
+          <form id="contact-form" class="form-grid">
+            <label>شماره تلفن<input name="phone" type="tel" dir="ltr" placeholder="09121234567" required></label>
+            <div class="full"><button class="btn" type="submit">ذخیره</button></div>
+          </form>
+        </section>
+        </div>
       </div>
     </div>
   </div>

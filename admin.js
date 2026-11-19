@@ -45,7 +45,7 @@ async function enter(user) {
 }
 
 async function reloadAll() {
-  await Promise.all([loadGames(), loadSocial(), loadLogoPreview()]);
+  await Promise.all([loadGames(), loadSocial(), loadLogoPreview(), loadContact()]);
   loadLogo();
 }
 
@@ -298,6 +298,30 @@ async function onSocialClick(e) {
   loadSocial();
 }
 
+function showTab(name) {
+  document.querySelectorAll(".tab-btn").forEach((b) => {
+    const on = b.dataset.tab === name;
+    b.classList.toggle("active", on);
+    b.classList.toggle("ghost", !on);
+  });
+  document.querySelectorAll(".tab-panel").forEach((p) => p.classList.toggle("hidden", p.dataset.panel !== name));
+}
+
+async function loadContact() {
+  const { data, error } = await sb.from("site_settings").select("value").eq("key", "contact_phone").maybeSingle();
+  if (error) return err(error);
+  $("#contact-form [name='phone']").value = typeof data?.value === "string" ? data.value : "";
+}
+
+async function saveContact(e) {
+  e.preventDefault();
+  const phone = String(new FormData(e.target).get("phone") || "").trim();
+  if (!/^[+0-9 ()-]{6,20}$/.test(phone)) return err({ message: "شماره تلفن معتبر نیست." });
+  const { error } = await sb.from("site_settings").upsert({ key: "contact_phone", value: phone });
+  if (error) return err(error);
+  ok("شماره تماس ذخیره شد.");
+}
+
 function initAdmin() {
   if (!CONFIGURED) {
     notice(t("setup_needed"));
@@ -317,6 +341,8 @@ function initAdmin() {
   $("#video-file").addEventListener("change", (e) => uploadInto(e, "video_url"));
   $("#gallery-file").addEventListener("change", onGalleryFiles);
   $("#logo-file").addEventListener("change", onLogoFile);
+  $("#contact-form").addEventListener("submit", saveContact);
+  document.querySelectorAll(".tab-btn").forEach((b) => b.addEventListener("click", () => showTab(b.dataset.tab)));
 
   sb.auth.onAuthStateChange((event, session) => {
     if (!session) return showView("login");
