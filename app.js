@@ -45,20 +45,18 @@ function renderShell() {
   const links = NAV.map(
     ([href, key]) => `<a href="${href}" class="${href === here ? "active" : ""}">${esc(t(key))}</a>`
   ).join("");
-  if ($("#rail")) $("#rail").innerHTML = `<div id="logo-slot" class="logo-slot"></div><nav class="rail-nav">${links}</nav>`;
+  if ($("#rail")) $("#rail").innerHTML = `<div id="logo-slot" class="logo-slot" data-logo></div><nav class="rail-nav">${links}</nav>`;
   if ($("#mnav")) $("#mnav").innerHTML = links;
   buildLang();
 }
 
 async function loadLogo() {
-  const slot = $("#logo-slot");
-  const big = $("#profile-logo");
-  if ((!slot && !big) || !sb) return;
+  const slots = document.querySelectorAll("[data-logo]");
+  if (!slots.length || !sb) return;
   const { data } = await sb.from("site_settings").select("value").eq("key", "logo_url").maybeSingle();
   if (typeof data?.value === "string" && data.value) {
     const img = `<img src="${esc(safeUrl(data.value))}" alt="">`;
-    if (slot) slot.innerHTML = img;
-    if (big) big.innerHTML = img;
+    slots.forEach((el) => (el.innerHTML = img));
   }
 }
 
