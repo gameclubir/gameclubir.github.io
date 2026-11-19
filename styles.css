@@ -79,8 +79,18 @@ a { color: inherit; text-decoration: none; }
   box-shadow: 0 0 22px rgba(255, 150, 40, 0.18);
 }
 
-.logo-slot { min-height: 48px; display: flex; align-items: center; justify-content: center; width: 100%; }
-.logo-slot img { max-height: 52px; max-width: 100%; }
+.logo-slot { min-height: 48px; display: flex; align-items: center; justify-content: center; width: 100%; overflow: hidden; }
+/* Crop the logo's outer margin and fade its edges so only the logo itself shows */
+.logo-slot img {
+  max-height: 52px; max-width: 100%; transform: scale(1.3);
+  -webkit-mask-image: radial-gradient(ellipse at center, #000 55%, transparent 100%);
+  mask-image: radial-gradient(ellipse at center, #000 55%, transparent 100%);
+}
+.profile-logo { display: flex; justify-content: center; margin: 4px 0 18px; }
+.profile-logo img {
+  width: 120px; height: 120px; border-radius: 50%; object-fit: cover; display: block;
+  border: 2px solid var(--gold); background: #0b0b0d;
+}
 
 .content { flex: 1; min-width: 0; }
 

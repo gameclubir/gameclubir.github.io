@@ -52,10 +52,13 @@ function renderShell() {
 
 async function loadLogo() {
   const slot = $("#logo-slot");
-  if (!slot || !sb) return;
+  const big = $("#profile-logo");
+  if ((!slot && !big) || !sb) return;
   const { data } = await sb.from("site_settings").select("value").eq("key", "logo_url").maybeSingle();
   if (typeof data?.value === "string" && data.value) {
-    slot.innerHTML = `<img src="${esc(safeUrl(data.value))}" alt="">`;
+    const img = `<img src="${esc(safeUrl(data.value))}" alt="">`;
+    if (slot) slot.innerHTML = img;
+    if (big) big.innerHTML = img;
   }
 }
 
