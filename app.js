@@ -10,6 +10,10 @@ const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "
 const safeUrl = (u) => (/^https?:\/\//i.test(u || "") ? u : "#");
 const num = (n) => (n === null || n === undefined || Number.isNaN(Number(n)) ? "—" : Number(n).toLocaleString(LANG));
 const gameHref = (g) => `game.html?id=${encodeURIComponent(g.id)}`;
+const partsOf = (g) => {
+  const list = Array.isArray(g.download_parts) ? g.download_parts.filter((p) => p && p.url) : [];
+  return list.length ? list : g.download_url ? [{ label: "", url: g.download_url }] : [];
+};
 const cover = (g) =>
   g.cover_url ? `url('${safeUrl(g.cover_url).replace(/'/g, "%27")}')` : "linear-gradient(135deg,#3a2a10,#0e0e10)";
 

@@ -98,10 +98,34 @@ function renderStats() {
     .join("");
 }
 
+function partRow(p = {}) {
+  return `<div class="part-row">
+    <input class="part-label" placeholder="نام پارت (مثلاً پارت ۱)" value="${esc(p.label || "")}">
+    <input class="part-url ltr" placeholder="https://..." value="${esc(p.url || "")}">
+    <button class="btn danger sm rm-part" type="button">حذف</button>
+  </div>`;
+}
+
+function renderParts(list) {
+  $("#parts-list").innerHTML = (list.length ? list : [{}]).map(partRow).join("");
+}
+
+function readParts() {
+  const list = [...document.querySelectorAll("#parts-list .part-row")]
+    .map((r) => ({
+      label: r.querySelector(".part-label").value.trim(),
+      url: r.querySelector(".part-url").value.trim(),
+    }))
+    .filter((p) => p.url);
+  const bad = list.some((p) => !/^https?:\/\//i.test(p.url));
+  return { list, bad };
+}
+
 function resetForm() {
   EDITING = null;
   $("#game-form").reset();
   $("#form-title").textContent = "بازی جدید";
+  renderParts([]);
 }
 
 function fillForm(g) {
@@ -109,7 +133,8 @@ function fillForm(g) {
   EDITING = g.id;
   $("#form-title").textContent = `ویرایش: ${g.title}`;
   ["title", "developer", "release_year", "genre", "rating", "download_size", "description", "cover_url",
-    "video_url", "official_store_url", "download_url"].forEach((n) => (F(n).value = g[n] ?? ""));
+    "video_url", "official_store_url"].forEach((n) => (F(n).value = g[n] ?? ""));
+  renderParts(partsOf(g));
   F("platforms").value = (g.platforms || []).join(", ");
   F("gallery").value = (g.gallery || []).join("\n");
   ["min", "rec"].forEach((p) => {
@@ -145,7 +170,8 @@ function readForm() {
     video_url: nul(F("video_url").value),
     gallery: lines(F("gallery").value),
     official_store_url: nul(F("official_store_url").value),
-    download_url: nul(F("download_url").value),
+    download_parts: readParts().list,
+    download_url: readParts().list[0]?.url || null,
     min_specs: specs("min"),
     rec_specs: specs("rec"),
     is_featured: F("is_featured").checked,
@@ -158,6 +184,7 @@ async function saveGame(e) {
   const p = readForm();
   if (!p.title) return err({ message: "عنوان بازی الزامی است." });
   if (p.rating !== null && (p.rating < 0 || p.rating > 5)) return err({ message: "امتیاز باید بین ۰ و ۵ باشد." });
+  if (readParts().bad) return err({ message: "آدرس همه پارت‌های دانلود باید با http:// یا https:// شروع شود." });
   const res = EDITING
     ? await sb.from("games").update(p).eq("id", EDITING)
     : await sb.from("games").insert(p);
@@ -372,9 +399,14 @@ function initAdmin() {
     return;
   }
   buildCategoryBoxes();
+  renderParts([]);
   $("#login-form").addEventListener("submit", onLogin);
   $("#logout").addEventListener("click", () => sb.auth.signOut());
   $("#new-game").addEventListener("click", resetForm);
+  $("#add-part").addEventListener("click", () => $("#parts-list").insertAdjacentHTML("beforeend", partRow()));
+  $("#parts-list").addEventListener("click", (e) => {
+    if (e.target.closest(".rm-part")) e.target.closest(".part-row").remove();
+  });
   $("#cancel-edit").addEventListener("click", resetForm);
   $("#game-form").addEventListener("submit", saveGame);
   $("#games-table").addEventListener("click", onGamesClick);

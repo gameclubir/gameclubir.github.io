@@ -100,7 +100,7 @@ async function initGame() {
         </div>
         <div class="actions">
           ${g.official_store_url ? `<a class="btn" href="${esc(safeUrl(g.official_store_url))}" target="_blank" rel="noopener noreferrer">${esc(t("store"))}</a>` : ""}
-          ${g.download_url ? `<a class="btn ghost" href="${esc(safeUrl(g.download_url))}" target="_blank" rel="noopener noreferrer">${esc(t("download"))}</a>` : ""}
+          ${partsOf(g).map((p, i) => `<a class="btn ghost" href="${esc(safeUrl(p.url))}" target="_blank" rel="noopener noreferrer">${esc(p.label || `${t("download")} ${i + 1}`)}</a>`).join("")}
         </div>
       </div>
     </section>
