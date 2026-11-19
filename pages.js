@@ -82,13 +82,30 @@ async function initGame() {
 
   document.title = `${g.title} — GAME CLUB`;
   const gallery = g.gallery || [];
-  const videoBtn = g.video_url ? `<button class="vid" data-video="1" aria-label="video">▶</button>` : "";
-  const thumbs = videoBtn + gallery.map((src, i) => `<img data-i="${i}" src="${esc(safeUrl(src))}" alt="">`).join("");
+  const coverHtml = g.cover_url
+    ? `<img class="game-cover-img" src="${esc(safeUrl(g.cover_url))}" alt="${esc(g.title)}">`
+    : `<div class="game-cover-img game-cover-empty"></div>`;
+  const storeHtml = g.official_store_url
+    ? `<div class="actions"><a class="btn" href="${esc(safeUrl(g.official_store_url))}" target="_blank" rel="noopener noreferrer">${esc(t("store"))}</a></div>`
+    : "";
+  const videoHtml = g.video_url ? `<div class="player">${videoEmbed(g.video_url)}</div>` : "";
+  const galleryHtml = gallery.length
+    ? `<div class="gallery">${gallery.map((src) => `<img src="${esc(safeUrl(src))}" alt="${esc(g.title)}" loading="lazy">`).join("")}</div>`
+    : "";
+  const mediaBody = videoHtml || galleryHtml ? videoHtml + galleryHtml : `<p class="empty">${esc(t("no_media"))}</p>`;
+  const parts = partsOf(g);
+  const downloadHtml = parts.length
+    ? `<section class="glass panel">
+        <h2>${esc(t("download"))}</h2>
+        <div class="actions">${parts.map((p, i) => `<a class="btn ghost" href="${esc(safeUrl(p.url))}" target="_blank" rel="noopener noreferrer">${esc(p.label || `${t("download")} ${i + 1}`)}</a>`).join("")}</div>
+      </section>`
+    : "";
 
   $("#game").innerHTML = `
-    <section class="glass hero-game" style="--bg-img:${cover(g)}">
-      <div class="hero-game-body">
-        <a class="back" href="games.html">‹ ${esc(t("back"))}</a>
+    <a class="back" href="games.html">‹ ${esc(t("back"))}</a>
+    <section class="glass game-top">
+      ${coverHtml}
+      <div class="game-info">
         <h1>${esc(g.title)}</h1>
         <p class="meta">${esc(g.developer || "")}${g.release_year ? ` · ${num(g.release_year)}` : ""}</p>
         <div class="chips" style="margin-top:12px">${(g.categories || []).map((c) => `<span class="chip on">${esc(t("cat_" + c))}</span>`).join("")}</div>
@@ -98,40 +115,24 @@ async function initGame() {
           <span>${esc(t("size"))}: <b>${esc(g.download_size || "—")}</b></span>
           <span>${esc(t("platforms"))}: <b>${esc((g.platforms || []).join("، ") || "—")}</b></span>
         </div>
-        <div class="actions">
-          ${g.official_store_url ? `<a class="btn" href="${esc(safeUrl(g.official_store_url))}" target="_blank" rel="noopener noreferrer">${esc(t("store"))}</a>` : ""}
-          ${partsOf(g).map((p, i) => `<a class="btn ghost" href="${esc(safeUrl(p.url))}" target="_blank" rel="noopener noreferrer">${esc(p.label || `${t("download")} ${i + 1}`)}</a>`).join("")}
-        </div>
+        ${storeHtml}
       </div>
     </section>
 
-    <section class="game-grid">
-      <div class="glass panel">
+    <div class="game-stack">
+      <section class="glass panel">
         <h2>${esc(t("media"))}</h2>
-        <div class="player" id="display"></div>
-        <div class="gallery" id="thumbs">${thumbs}</div>
-      </div>
-      <div class="glass panel">
+        ${mediaBody}
+      </section>
+      <section class="glass panel">
         <h2>${esc(t("requirements"))}</h2>
         <h3 class="sub">${esc(t("minimum"))}</h3>
         ${specTable(g.min_specs)}
         <h3 class="sub">${esc(t("recommended_req"))}</h3>
         ${specTable(g.rec_specs)}
-      </div>
-    </section>`;
-
-  const show = (m) => {
-    $("#display").innerHTML = m.video ? videoEmbed(m.src) : `<img src="${esc(safeUrl(m.src))}" alt="${esc(g.title)}">`;
-  };
-  if (g.video_url) show({ video: true, src: g.video_url });
-  else if (gallery[0]) show({ video: false, src: gallery[0] });
-  else $("#display").innerHTML = `<p class="empty">${esc(t("no_media"))}</p>`;
-
-  $("#thumbs").addEventListener("click", (e) => {
-    if (e.target.closest("[data-video]")) return show({ video: true, src: g.video_url });
-    const img = e.target.closest("img[data-i]");
-    if (img) show({ video: false, src: gallery[+img.dataset.i] });
-  });
+      </section>
+      ${downloadHtml}
+    </div>`;
 }
 
 PAGES.games = initGames;
