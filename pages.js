@@ -92,7 +92,7 @@ async function initGame() {
   const galleryHtml = gallery.length
     ? `<div class="gallery">${gallery.map((src) => `<img src="${esc(safeUrl(src))}" alt="${esc(g.title)}" loading="lazy">`).join("")}</div>`
     : "";
-  const mediaBody = videoHtml || galleryHtml ? videoHtml + galleryHtml : `<p class="empty">${esc(t("no_media"))}</p>`;
+  const mediaHtml = videoHtml || galleryHtml ? `<section class="glass panel">${videoHtml}${galleryHtml}</section>` : "";
   const parts = partsOf(g);
   const downloadHtml = parts.length
     ? `<section class="glass panel">
@@ -120,9 +120,7 @@ async function initGame() {
     </section>
 
     <div class="game-stack">
-      <section class="glass panel">
-        ${mediaBody}
-      </section>
+      ${mediaHtml}
       <section class="glass panel">
         <h2>${esc(t("requirements"))}</h2>
         <h3 class="sub">${esc(t("minimum"))}</h3>
