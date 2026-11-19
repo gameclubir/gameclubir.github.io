@@ -181,17 +181,30 @@ function readForm() {
 
 async function saveGame(e) {
   e.preventDefault();
-  const p = readForm();
-  if (!p.title) return err({ message: "عنوان بازی الزامی است." });
-  if (p.rating !== null && (p.rating < 0 || p.rating > 5)) return err({ message: "امتیاز باید بین ۰ و ۵ باشد." });
-  if (readParts().bad) return err({ message: "آدرس همه پارت‌های دانلود باید با http:// یا https:// شروع شود." });
-  const res = EDITING
-    ? await sb.from("games").update(p).eq("id", EDITING)
-    : await sb.from("games").insert(p);
-  if (res.error) return err(res.error);
-  ok("بازی ذخیره شد.");
-  resetForm();
-  loadGames();
+  const btn = e.target.querySelector('button[type="submit"]');
+  if (btn && btn.disabled) return;
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = "در حال ذخیره...";
+  }
+  try {
+    const p = readForm();
+    if (!p.title) return err({ message: "عنوان بازی الزامی است." });
+    if (p.rating !== null && (p.rating < 0 || p.rating > 5)) return err({ message: "امتیاز باید بین ۰ و ۵ باشد." });
+    if (readParts().bad) return err({ message: "آدرس همه پارت‌های دانلود باید با http:// یا https:// شروع شود." });
+    const res = EDITING
+      ? await sb.from("games").update(p).eq("id", EDITING)
+      : await sb.from("games").insert(p);
+    if (res.error) return err(res.error);
+    ok("بازی ذخیره شد.");
+    resetForm();
+    loadGames();
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = "ذخیره";
+    }
+  }
 }
 
 async function onGamesClick(e) {
@@ -213,14 +226,37 @@ async function onGamesClick(e) {
   loadGames();
 }
 
+// Shrink large photos in the browser before upload so pages stay fast on phones.
+// Logos keep transparency (PNG, 512px); other images become WebP at 1600px.
+async function shrinkImage(file, maxSide, type) {
+  if (!file.type.startsWith("image/") || /svg|gif/.test(file.type)) return file;
+  try {
+    const bmp = await createImageBitmap(file);
+    const scale = Math.min(1, maxSide / Math.max(bmp.width, bmp.height));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(bmp.width * scale);
+    canvas.height = Math.round(bmp.height * scale);
+    canvas.getContext("2d").drawImage(bmp, 0, 0, canvas.width, canvas.height);
+    bmp.close?.();
+    const blob = await new Promise((resolve) => canvas.toBlob(resolve, type, 0.85));
+    if (!blob) return file;
+    const base = file.name.replace(/\.[^.]+$/, "");
+    return new File([blob], `${base}.${type === "image/png" ? "png" : "webp"}`, { type });
+  } catch {
+    return file;
+  }
+}
+
 async function uploadFile(bucket, file) {
   const maxMB = file.type.startsWith("video/") ? 100 : 10;
   if (file.size > maxMB * 1024 * 1024) throw new Error(`حجم فایل نباید بیشتر از ${maxMB} مگابایت باشد.`);
-  const path = `${crypto.randomUUID()}-${file.name.replace(/[^\w.-]+/g, "_")}`;
-  const { error } = await sb.storage.from(bucket).upload(path, file, {
+  const isLogo = bucket === "site-assets";
+  const out = await shrinkImage(file, isLogo ? 512 : 1600, isLogo ? "image/png" : "image/webp");
+  const path = `${crypto.randomUUID()}-${out.name.replace(/[^\w.-]+/g, "_")}`;
+  const { error } = await sb.storage.from(bucket).upload(path, out, {
     cacheControl: "31536000",
     upsert: false,
-    contentType: file.type,
+    contentType: out.type,
   });
   if (error) throw error;
   return sb.storage.from(bucket).getPublicUrl(path).data.publicUrl;
