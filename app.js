@@ -51,7 +51,15 @@ function renderShell() {
 }
 
 async function loadLogo() {
-  const slots = document.querySelectorAll("[data-logo]");
+  // Home and profile show a top logo; create its box here too, so a cached page without it still shows the logo
+  const here = location.pathname.split("/").pop() || "index.html";
+  const content = $(".content");
+  if (content && (here === "index.html" || here === "profile.html") && !content.querySelector(".top-logo, .profile-logo")) {
+    const box = document.createElement("div");
+    box.className = here === "profile.html" ? "profile-logo" : "top-logo";
+    content.prepend(box);
+  }
+  const slots = document.querySelectorAll("[data-logo], .top-logo, .profile-logo, #logo-slot");
   if (!slots.length || !sb) return;
   const { data } = await sb.from("site_settings").select("value").eq("key", "logo_url").maybeSingle();
   if (typeof data?.value === "string" && data.value) {
