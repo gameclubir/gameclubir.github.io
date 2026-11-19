@@ -55,6 +55,8 @@ button.chip { font: inherit; }
 .actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 18px; }
 .back { display: inline-block; color: var(--muted); font-size: 0.9rem; margin-bottom: 12px; }
 .game-stack { display: grid; gap: 18px; }
+.download-list { display: flex; flex-direction: column; gap: 10px; }
+.download-list .btn { width: 100%; text-align: center; }
 .panel { padding: 22px; }
 .panel h2 { font-size: 1.1rem; margin-bottom: 14px; }
 .sub { color: var(--gold); font-size: 0.9rem; margin: 14px 0 6px; }
