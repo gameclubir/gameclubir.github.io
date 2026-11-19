@@ -29,7 +29,6 @@ function notice(msg, isError = true) {
 const NAV = [
   ["index.html", "home"],
   ["games.html", "library"],
-  ["profile.html", "profile"],
   ["admin.html", "admin"],
 ];
 
@@ -63,8 +62,10 @@ async function loadLogo() {
   if (!slots.length || !sb) return;
   const { data } = await sb.from("site_settings").select("value").eq("key", "logo_url").maybeSingle();
   if (typeof data?.value === "string" && data.value) {
-    const img = `<img src="${esc(safeUrl(data.value))}" alt="">`;
-    slots.forEach((el) => (el.innerHTML = img));
+    // The logo opens the profile page; a small label sits under it everywhere except on the profile page itself
+    const label = here === "profile.html" ? "" : `<small class="logo-label">${esc(t("profile"))}</small>`;
+    const html = `<a class="logo-link" href="profile.html" aria-label="${esc(t("profile"))}"><img src="${esc(safeUrl(data.value))}" alt="">${label}</a>`;
+    slots.forEach((el) => (el.innerHTML = html));
   }
 }
 
