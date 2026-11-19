@@ -23,7 +23,6 @@ function notice(msg, isError = true) {
 const NAV = [
   ["index.html", "home"],
   ["games.html", "library"],
-  ["ai.html", "ai"],
   ["admin.html", "admin"],
 ];
 
