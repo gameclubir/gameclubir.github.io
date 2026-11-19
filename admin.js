@@ -347,6 +347,7 @@ function showTab(name) {
     b.classList.toggle("ghost", !on);
   });
   document.querySelectorAll(".tab-panel").forEach((p) => p.classList.toggle("hidden", p.dataset.panel !== name));
+  window.scrollTo({ top: 0, behavior: "instant" });
 }
 
 async function loadContact() {

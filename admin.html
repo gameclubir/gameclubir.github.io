@@ -36,21 +36,24 @@
         </div>
 
         <nav class="admin-tabs">
-          <button class="btn sm tab-btn active" data-tab="games" type="button">بازی‌ها</button>
+          <button class="btn sm tab-btn active" data-tab="stats" type="button">آمار</button>
+          <button class="btn sm ghost tab-btn" data-tab="games" type="button">بازی‌ها</button>
           <button class="btn sm ghost tab-btn" data-tab="look" type="button">ظاهر سایت</button>
           <button class="btn sm ghost tab-btn" data-tab="users" type="button">فعالیت کاربران</button>
           <button class="btn sm ghost tab-btn" data-tab="contact" type="button">تماس</button>
         </nav>
 
+        <div class="tab-panel" data-panel="stats">
         <section class="stats" id="stats"></section>
-
-        <div class="tab-panel" data-panel="games">
         <div class="admin-grid">
           <div class="glass section">
             <h2>دسته‌بندی‌ها</h2>
             <div id="cat-stats"></div>
           </div>
         </div>
+        </div>
+
+        <div class="tab-panel hidden" data-panel="games">
 
         <section class="glass section">
           <div class="section-head">

@@ -12,10 +12,15 @@
   <div class="app">
     <aside id="rail" class="rail glass"></aside>
     <div class="content">
-      <header class="topbar" style="justify-content:flex-end">
-        <select id="lang" class="lang glass" aria-label="language"></select>
-      </header>
       <div id="notice" class="notice hidden"></div>
+
+      <section class="glass section">
+        <h2>تنظیمات ظاهری</h2>
+        <form id="lang-form" class="form-grid">
+          <label>زبان سایت<select id="pref-lang"></select></label>
+          <div class="full"><button class="btn" type="submit">ذخیره زبان</button></div>
+        </form>
+      </section>
 
       <section id="view-guest" class="glass login hidden">
         <h2>ورود به حساب</h2>
@@ -41,14 +46,6 @@
           <form id="name-form" class="form-grid">
             <label>نام نمایشی<input name="display_name" required maxlength="40"></label>
             <div class="full"><button class="btn" type="submit">ذخیره نام</button></div>
-          </form>
-        </section>
-
-        <section class="glass section">
-          <h2>تنظیمات ظاهری</h2>
-          <form id="lang-form" class="form-grid">
-            <label>زبان سایت<select id="pref-lang"></select></label>
-            <div class="full"><button class="btn" type="submit">ذخیره زبان</button></div>
           </form>
         </section>
 

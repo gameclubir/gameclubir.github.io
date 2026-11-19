@@ -61,13 +61,18 @@ async function onSaveName(e) {
 async function onSaveLang(e) {
   e.preventDefault();
   const code = $("#pref-lang").value;
-  const { data: { user } } = await sb.auth.getUser();
-  const { error } = await sb.from("profiles").update({ language: code }).eq("id", user.id);
-  if (error) return pErr(error.message);
+  if (CONFIGURED) {
+    const { data: { session } } = await sb.auth.getSession();
+    if (session) {
+      const { error } = await sb.from("profiles").update({ language: code }).eq("id", session.user.id);
+      if (error) return pErr(error.message);
+    }
+  }
   setLang(code);
 }
 
 function initProfile() {
+  fillLangSelect(LANG);
   if (!CONFIGURED) {
     notice(t("setup_needed"));
     showProfileView("guest");
