@@ -13,7 +13,7 @@ const gameCard = (g) =>
     <div class="cover" style="background-image:${cover(g)}">${g.is_featured ? `<span class="badge">${esc(t("featured"))}</span>` : ""}</div>
     <div class="card-body">
       <h3>${esc(g.title)}</h3>
-      <div class="meta"><span>${esc(g.genre || "")}</span><span>${num(g.release_year)}</span><span class="rating">★ ${num(g.rating)}</span></div>
+      <div class="meta"><span>${esc(g.genre || "")}</span><span>${yearText(g.release_year)}</span><span class="rating">★ ${num(g.rating)}</span></div>
     </div>
   </a>`;
 
@@ -107,7 +107,7 @@ async function initGame() {
       ${coverHtml}
       <div class="game-info">
         <h1>${esc(g.title)}</h1>
-        <p class="meta">${esc(g.developer || "")}${g.release_year ? ` · ${num(g.release_year)}` : ""}</p>
+        <p class="meta">${esc(g.developer || "")}${g.release_year ? ` · ${yearText(g.release_year)}` : ""}</p>
         <div class="chips" style="margin-top:12px">${(g.categories || []).map((c) => `<span class="chip on">${esc(t("cat_" + c))}</span>`).join("")}</div>
         <p class="desc">${esc(g.description || "")}</p>
         <div class="meta-row">

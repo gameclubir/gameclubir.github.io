@@ -9,6 +9,8 @@ const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 const safeUrl = (u) => (/^https?:\/\//i.test(u || "") ? u : "#");
 const num = (n) => (n === null || n === undefined || Number.isNaN(Number(n)) ? "—" : Number(n).toLocaleString(LANG));
+// Years are shown without digit grouping (2026, not ۲٬۰۲۶)
+const yearText = (n) => (n ? Number(n).toLocaleString(LANG, { useGrouping: false }) : "");
 const gameHref = (g) => `game.html?id=${encodeURIComponent(g.id)}`;
 const partsOf = (g) => {
   const list = Array.isArray(g.download_parts) ? g.download_parts.filter((p) => p && p.url) : [];
