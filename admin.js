@@ -133,7 +133,7 @@ function fillForm(g) {
   EDITING = g.id;
   $("#form-title").textContent = `ویرایش: ${g.title}`;
   ["title", "developer", "release_year", "genre", "rating", "download_size", "description", "cover_url",
-    "video_url", "official_store_url"].forEach((n) => (F(n).value = g[n] ?? ""));
+    "video_url", "official_store_url", "download_password"].forEach((n) => (F(n).value = g[n] ?? ""));
   renderParts(partsOf(g));
   F("platforms").value = (g.platforms || []).join(", ");
   F("gallery").value = (g.gallery || []).join("\n");
@@ -163,6 +163,7 @@ function readForm() {
     official_store_url: nul(F("official_store_url").value),
     download_parts: readParts().list,
     download_url: readParts().list[0]?.url || null,
+    download_password: nul(F("download_password").value),
     min_specs: specs("min"),
     rec_specs: specs("rec"),
     is_featured: F("is_featured").checked,

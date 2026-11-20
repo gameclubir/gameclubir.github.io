@@ -56,6 +56,8 @@ button.chip { font: inherit; }
 .back { display: inline-block; color: var(--muted); font-size: 0.9rem; margin-bottom: 12px; }
 .game-stack { display: grid; gap: 18px; }
 .download-list { display: flex; flex-direction: column; gap: 10px; }
+.pass-box { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; font-size: 0.9rem; color: var(--muted); }
+.pass-box b { min-width: 140px; min-height: 1.6em; padding: 6px 12px; border: 1px solid var(--line); border-radius: 10px; color: var(--text); direction: ltr; text-align: left; }
 .download-list .btn { width: 100%; text-align: center; }
 .panel { padding: 22px; }
 .panel h2 { font-size: 1.1rem; margin-bottom: 14px; }

@@ -97,6 +97,7 @@ async function initGame() {
   const downloadHtml = parts.length
     ? `<section class="glass panel">
         <h2>${esc(t("download"))}</h2>
+        <div class="pass-box"><span>رمز فایل</span><b>${esc(g.download_password || "")}</b></div>
         <div class="download-list">${parts.map((p, i) => `<a class="btn ghost" href="${esc(safeUrl(p.url))}" target="_blank" rel="noopener noreferrer">${esc(p.label || `${t("download")} ${i + 1}`)}</a>`).join("")}</div>
       </section>`
     : "";
