@@ -124,9 +124,9 @@ async function initGame() {
       <section class="glass panel">
         <h2>${esc(t("requirements"))}</h2>
         <h3 class="sub">${esc(t("minimum"))}</h3>
-        <div class="spec-blank"></div>
+        <div class="spec-blank">${esc((g.min_specs || {}).text || "")}</div>
         <h3 class="sub">${esc(t("recommended_req"))}</h3>
-        <div class="spec-blank"></div>
+        <div class="spec-blank">${esc((g.rec_specs || {}).text || "")}</div>
       </section>
       ${downloadHtml}
     </div>`;

@@ -137,10 +137,7 @@ function fillForm(g) {
   renderParts(partsOf(g));
   F("platforms").value = (g.platforms || []).join(", ");
   F("gallery").value = (g.gallery || []).join("\n");
-  ["min", "rec"].forEach((p) => {
-    const s = g[`${p}_specs`] || {};
-    SPEC_KEYS.forEach((k) => (F(`${p}_${k}`).value = s[k] ?? ""));
-  });
+  ["min", "rec"].forEach((p) => (F(`${p}_text`).value = (g[`${p}_specs`] || {}).text || ""));
   document.querySelectorAll('#game-form [name="cat"]').forEach((cb) => (cb.checked = (g.categories || []).includes(cb.value)));
   F("is_featured").checked = !!g.is_featured;
   F("is_popular").checked = !!g.is_popular;
@@ -148,13 +145,7 @@ function fillForm(g) {
 }
 
 function readForm() {
-  const specs = (p) => ({
-    os: nul(F(`${p}_os`).value),
-    cpu: nul(F(`${p}_cpu`).value),
-    gpu: nul(F(`${p}_gpu`).value),
-    ram_gb: Number(F(`${p}_ram_gb`).value) || null,
-    storage_gb: Number(F(`${p}_storage_gb`).value) || null,
-  });
+  const specs = (p) => ({ text: String(F(`${p}_text`).value || "").trim() || null });
   const lines = (v) => String(v || "").split("\n").map((s) => s.trim()).filter(Boolean);
   return {
     title: F("title").value.trim(),

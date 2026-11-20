@@ -101,27 +101,8 @@
               <button class="btn ghost sm" type="button" id="add-part" style="margin-top:8px">+ افزودن پارت</button>
             </div>
 
-            <div class="full">
-              <span class="field-label">حداقل نیازمندی‌ها</span>
-              <div class="form-grid">
-                <label>سیستم‌عامل<input name="min_os"></label>
-                <label>پردازنده<input name="min_cpu"></label>
-                <label>کارت گرافیک<input name="min_gpu"></label>
-                <label>رم (GB)<input name="min_ram_gb" type="number" min="0"></label>
-                <label>فضای ذخیره‌سازی (GB)<input name="min_storage_gb" type="number" min="0"></label>
-              </div>
-            </div>
-
-            <div class="full">
-              <span class="field-label">توصیه‌شده</span>
-              <div class="form-grid">
-                <label>سیستم‌عامل<input name="rec_os"></label>
-                <label>پردازنده<input name="rec_cpu"></label>
-                <label>کارت گرافیک<input name="rec_gpu"></label>
-                <label>رم (GB)<input name="rec_ram_gb" type="number" min="0"></label>
-                <label>فضای ذخیره‌سازی (GB)<input name="rec_storage_gb" type="number" min="0"></label>
-              </div>
-            </div>
+            <label class="full">حداقل سیستم مورد نیاز (متن آزاد)<textarea name="min_text" rows="5"></textarea></label>
+            <label class="full">سیستم پیشنهادی (متن آزاد)<textarea name="rec_text" rows="5"></textarea></label>
 
             <label><input type="checkbox" name="is_featured"> بنر ویژه صفحه اصلی</label>
             <label><input type="checkbox" name="is_popular"> محبوب</label>
