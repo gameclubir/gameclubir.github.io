@@ -67,6 +67,7 @@ function renderGames() {
           <td><button class="chip ${g.is_featured ? "on" : ""}" data-act="feature" data-id="${g.id}">${g.is_featured ? "بله" : "خیر"}</button></td>
           <td><button class="chip ${g.is_popular ? "on" : ""}" data-act="popular" data-id="${g.id}">${g.is_popular ? "بله" : "خیر"}</button></td>
           <td>
+            <button class="chip ${g.is_active === false ? "" : "on"}" data-act="active" data-id="${g.id}">${g.is_active === false ? "غیرفعال" : "فعال"}</button>
             <button class="btn ghost sm" data-act="edit" data-id="${g.id}">ویرایش</button>
             <button class="btn danger sm" data-act="del" data-id="${g.id}">حذف</button>
           </td></tr>`
@@ -212,7 +213,7 @@ async function onGamesClick(e) {
     if (EDITING === g.id) resetForm();
     return loadGames();
   }
-  const col = b.dataset.act === "feature" ? "is_featured" : "is_popular";
+  const col = { feature: "is_featured", popular: "is_popular", active: "is_active" }[b.dataset.act] || "is_popular";
   const { error } = await sb.from("games").update({ [col]: !g[col] }).eq("id", g.id);
   if (error) return err(error);
   loadGames();

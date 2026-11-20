@@ -70,7 +70,7 @@ async function loadLogo() {
 }
 
 async function fetchGames() {
-  const { data, error } = await sb.from("games").select("*").order("created_at", { ascending: false });
+  const { data, error } = await sb.from("games").select("*").eq("is_active", true).order("created_at", { ascending: false });
   if (error) {
     notice(`${t("error")} ${error.message}`);
     return [];

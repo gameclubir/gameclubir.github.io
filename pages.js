@@ -77,7 +77,7 @@ async function initGame() {
   if (!CONFIGURED) return notice(t("setup_needed"));
   const id = new URLSearchParams(location.search).get("id");
   if (!id) return notice(t("not_found"));
-  const { data: g, error } = await sb.from("games").select("*").eq("id", id).maybeSingle();
+  const { data: g, error } = await sb.from("games").select("*").eq("id", id).eq("is_active", true).maybeSingle();
   if (error || !g) return notice(t("not_found"));
 
   document.title = `${g.title} — GAME CLUB`;
