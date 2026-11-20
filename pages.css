@@ -60,6 +60,7 @@ button.chip { font: inherit; }
 .panel { padding: 22px; }
 .panel h2 { font-size: 1.1rem; margin-bottom: 14px; }
 .sub { color: var(--gold); font-size: 0.9rem; margin: 14px 0 6px; }
+.spec-blank { min-height: 90px; border: 1px dashed var(--line); border-radius: 14px; }
 .player {
   width: 100%; aspect-ratio: 16 / 9; border-radius: 20px; overflow: hidden; background: #000;
   display: flex; align-items: center; justify-content: center;
