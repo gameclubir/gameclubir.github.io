@@ -355,6 +355,7 @@ async function onSocialClick(e) {
 }
 
 let USERS = [];
+let VISITS = { total: 0, today: 0, week: 0 };
 
 async function loadUsers() {
   const { data, error } = await sb
@@ -364,7 +365,22 @@ async function loadUsers() {
     .limit(1000);
   if (error) return err(error);
   USERS = data || [];
+  await loadVisits();
   renderUsers();
+}
+
+async function loadVisits() {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const week = new Date(Date.now() - 7 * 86400000);
+  const count = (from) => {
+    let q = sb.from("page_views").select("*", { count: "exact", head: true });
+    if (from) q = q.gte("created_at", from.toISOString());
+    return q;
+  };
+  const [all, td, wk] = await Promise.all([count(null), count(today), count(week)]);
+  if (all.error || td.error || wk.error) return err(all.error || td.error || wk.error);
+  VISITS = { total: all.count || 0, today: td.count || 0, week: wk.count || 0 };
 }
 
 function renderUsers() {
@@ -377,6 +393,9 @@ function renderUsers() {
     ["ثبت‌نام در ۷ روز اخیر", USERS.filter((u) => createdAgo(u) <= 7 * day).length],
     ["فعال در ۲۴ ساعت اخیر", USERS.filter((u) => seenAgo(u) <= day).length],
     ["فعال در ۷ روز اخیر", USERS.filter((u) => seenAgo(u) <= 7 * day).length],
+    ["بازدید امروز", VISITS.today],
+    ["بازدید ۷ روز اخیر", VISITS.week],
+    ["کل بازدیدها", VISITS.total],
   ];
   $("#user-stats").innerHTML = stats
     .map(([l, v]) => `<div class="glass stat"><b>${num(v)}</b><span class="muted">${l}</span></div>`)

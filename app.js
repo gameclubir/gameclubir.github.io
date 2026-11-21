@@ -199,11 +199,22 @@ async function touchLastSeen() {
   await sb.from("profiles").update({ last_seen: new Date().toISOString() }).eq("id", session.user.id);
 }
 
+// Count one page view per load (admin page is not counted); errors are ignored so pages never break
+function logVisit() {
+  const here = location.pathname.split("/").pop() || "index.html";
+  if (here === "admin.html") return;
+  sb.from("page_views").insert({ path: here }).then(
+    () => {},
+    () => {}
+  );
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   renderShell();
   if (CONFIGURED) {
     loadLogo();
     touchLastSeen();
+    logVisit();
   }
   const init = PAGES[document.body.dataset.page];
   if (init) init();
