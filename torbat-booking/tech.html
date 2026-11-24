@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>پنل تعمیرکار · تربت جام</title>
+<link href="https://fonts.googleapis.com/css2?family=Lalezar&family=Vazirmatn:wght@300;400;600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+<header class="topbar">
+  <div class="wrap">
+    <span class="brand">پنل تعمیرکار · تربت جام</span>
+    <div class="row-actions hidden" id="whoBox">
+      <span class="muted" id="who"></span>
+      <button class="btn ghost small" id="logoutBtn" type="button">خروج</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="card" id="loginView">
+    <h2>ورود تعمیرکار</h2>
+    <form id="loginForm" novalidate>
+      <div class="grid2">
+        <div class="full"><label for="email">ایمیل</label><input id="email" type="email" required autocomplete="username" style="direction:ltr"></div>
+        <div class="full"><label for="password">رمز عبور</label><input id="password" type="password" required autocomplete="current-password" style="direction:ltr"></div>
+      </div>
+      <div class="row-actions" style="margin-top:16px"><button class="btn" type="submit">ورود</button></div>
+      <div id="loginMsg" class="msg hidden"></div>
+    </form>
+  </section>
+
+  <div id="appView" class="hidden">
+    <div class="row-actions" style="justify-content:space-between;margin-bottom:12px">
+      <h2>سفارش‌های من</h2>
+      <button class="btn ghost small" id="reload" type="button">بارگذاری مجدد</button>
+    </div>
+    <div id="msg" class="msg hidden"></div>
+    <div id="list"><p class="muted">در حال بارگذاری...</p></div>
+  </div>
+</main>
+
+<script src="common.js"></script>
+<script>
+(function () {
+  const NEXT = {
+    assigned: [['awaiting_visit', 'در انتظار مراجعه']],
+    awaiting_visit: [['in_repair', 'شروع تعمیر']],
+    in_repair: [['completed', 'تکمیل شد']],
+    completed: [],
+    submitted: [], pending_review: [], confirmed: [], cancelled: []
+  };
+
+  function flash(text, kind) { showMsg($('msg'), text, kind); setTimeout(() => hideMsg($('msg')), 4000); }
+
+  async function enter(session) {
+    const { data: prof } = await sb.from('profiles').select('role, full_name').eq('id', session.user.id).maybeSingle();
+    if (!prof || prof.role !== 'technician') {
+      await sb.auth.signOut();
+      showMsg($('loginMsg'), 'این حساب دسترسی تعمیرکار ندارد.', 'err');
+      return;
+    }
+    $('loginView').classList.add('hidden');
+    $('appView').classList.remove('hidden');
+    $('who').textContent = esc(prof.full_name || session.user.email);
+    $('whoBox').classList.remove('hidden');
+    load();
+  }
+
+  async function load() {
+    const { data, error } = await sb.rpc('technician_orders');
+    const box = $('list');
+    if (error) { box.innerHTML = '<p class="status-bad">' + esc(error.message) + '</p>'; return; }
+    if (!data || !data.length) { box.innerHTML = '<p class="muted">سفارش فعالی به شما اختصاص داده نشده است.</p>'; return; }
+    box.innerHTML = data.map((o) => {
+      const actions = (NEXT[o.status] || []).map(([s, label]) =>
+        '<button class="btn small" type="button" data-next="' + s + '">' + esc(label) + '</button>').join('');
+      const phone = o.customer_phone;
+      return '<article class="card" data-id="' + esc(o.id) + '">' +
+        '<div class="row-actions" style="justify-content:space-between">' +
+          '<span class="code">' + esc(o.tracking_code) + '</span>' +
+          '<span class="pill">' + esc(STATUS_FA[o.status] || o.status) + '</span></div>' +
+        '<h3 style="margin-top:10px">' + esc(o.customer_name) + '</h3>' +
+        '<p><a href="tel:' + esc(phone) + '" style="direction:ltr;display:inline-block">' + esc(phone) + '</a></p>' +
+        '<p>' + esc(o.city) + '، ' + esc(o.neighborhood) + '، ' + esc(o.street) + '، کوچه ' + esc(o.alley) + '، پلاک ' + esc(o.plate) + '، واحد ' + esc(o.unit) + '</p>' +
+        '<p>' + esc(DEVICE_FA[o.device_type] || o.device_type) + ' ' + esc(o.device_brand) + ' ' + esc(o.device_model) + '</p>' +
+        '<p class="muted">' + esc(o.problem_description) + '</p>' +
+        '<p>مراجعه: ' + esc(faDate(o.slot_date, true)) + ' ساعت ' + esc(hm(o.slot_time)) + '</p>' +
+        '<textarea class="rep" placeholder="گزارش تعمیر" style="margin-top:8px">' + esc(o.repair_report) + '</textarea>' +
+        (actions ? '<div class="row-actions" style="margin-top:10px">' + actions + '</div>' : '') +
+        '</article>';
+    }).join('');
+  }
+
+  $('list').addEventListener('click', async (e) => {
+    const b = e.target.closest('button[data-next]');
+    if (!b) return;
+    const card = b.closest('[data-id]');
+    const { error } = await sb.rpc('technician_update', {
+      p_id: card.dataset.id,
+      p_status: b.dataset.next,
+      p_report: card.querySelector('.rep').value.trim()
+    });
+    if (error) return flash(error.message, 'err');
+    flash('وضعیت به‌روز شد.', 'ok');
+    load();
+  });
+
+  $('reload').addEventListener('click', load);
+  $('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    hideMsg($('loginMsg'));
+    const { data, error } = await sb.auth.signInWithPassword({ email: $('email').value.trim(), password: $('password').value });
+    if (error || !data.session) return showMsg($('loginMsg'), 'ایمیل یا رمز عبور درست نیست.', 'err');
+    await enter(data.session);
+  });
+  $('logoutBtn').addEventListener('click', async () => { await sb.auth.signOut(); location.reload(); });
+
+  sb.auth.getSession().then(({ data }) => { if (data.session) enter(data.session); });
+})();
+</script>
+</body>
+</html>

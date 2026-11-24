@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>پنل مدیریت رزرو · تربت جام</title>
+<link href="https://fonts.googleapis.com/css2?family=Lalezar&family=Vazirmatn:wght@300;400;600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+<header class="topbar">
+  <div class="wrap">
+    <span class="brand">پنل مدیریت · تربت جام</span>
+    <div class="row-actions hidden" id="whoBox">
+      <span class="muted" id="who"></span>
+      <button class="btn ghost small hidden" id="logoutBtn" type="button">خروج</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- Login -->
+  <section class="card" id="loginView">
+    <h2>ورود مدیر</h2>
+    <form id="loginForm" novalidate>
+      <div class="grid2">
+        <div class="full"><label for="email">ایمیل</label><input id="email" type="email" required autocomplete="username" style="direction:ltr"></div>
+        <div class="full"><label for="password">رمز عبور</label><input id="password" type="password" required autocomplete="current-password" style="direction:ltr"></div>
+      </div>
+      <div class="row-actions" style="margin-top:16px"><button class="btn" type="submit">ورود</button></div>
+      <div id="loginMsg" class="msg hidden"></div>
+    </form>
+  </section>
+
+  <!-- App -->
+  <div id="appView" class="hidden">
+    <div class="tabs">
+      <button data-tab="orders" class="on" type="button">سفارش‌ها</button>
+      <button data-tab="schedule" type="button">ساعت‌کاری و تعطیلی</button>
+      <button data-tab="slots" type="button">بازه‌ها و ظرفیت</button>
+    </div>
+    <div id="globalMsg" class="msg hidden"></div>
+
+    <!-- Orders -->
+    <section class="card" id="tab-orders">
+      <div class="row-actions" style="justify-content:space-between">
+        <h2>سفارش‌ها</h2>
+        <button class="btn ghost small" id="reloadOrders" type="button">بارگذاری مجدد</button>
+      </div>
+      <div style="overflow-x:auto"><table>
+        <thead><tr><th>کد</th><th>مشتری</th><th>آدرس</th><th>دستگاه و مشکل</th><th>زمان مراجعه</th><th>وضعیت و عملیات</th></tr></thead>
+        <tbody id="ordersBody"><tr><td colspan="6" class="muted">در حال بارگذاری...</td></tr></tbody>
+      </table></div>
+    </section>
+
+    <!-- Schedule -->
+    <section class="card hidden" id="tab-schedule">
+      <h2>روزهای کاری و ساعت شروع و پایان</h2>
+      <p class="muted">برای هر روز هفته مشخص کنید باز است یا نه، بازه زمانی، طول هر نوبت و ظرفیت هر نوبت.</p>
+      <div style="overflow-x:auto"><table>
+        <thead><tr><th>روز</th><th>باز است</th><th>شروع</th><th>پایان</th><th>طول نوبت (دقیقه)</th><th>ظرفیت</th></tr></thead>
+        <tbody id="rulesBody"></tbody>
+      </table></div>
+      <div class="row-actions" style="margin-top:14px"><button class="btn" id="saveRules" type="button">ذخیره ساعت‌کاری</button></div>
+
+      <h2 style="margin-top:26px">روزهای تعطیل</h2>
+      <div class="grid3">
+        <div><label for="holidayDate">تاریخ</label><input id="holidayDate" type="date" style="direction:ltr"></div>
+        <div><label for="holidayTitle">عنوان</label><input id="holidayTitle" maxlength="100"></div>
+        <div class="row-actions" style="align-items:end"><button class="btn" id="addHoliday" type="button">افزودن تعطیلی</button></div>
+      </div>
+      <div style="overflow-x:auto; margin-top:12px"><table><tbody id="holidaysBody"></tbody></table></div>
+
+      <h2 style="margin-top:26px">ساختن بازه‌های مراجعه</h2>
+      <p class="muted">بازه‌ها طبق ساعت‌کاری و بدون تعطیلی ساخته می‌شوند. بازه‌های موجود تغییر نمی‌کنند.</p>
+      <div class="grid3">
+        <div><label for="genFrom">از تاریخ</label><input id="genFrom" type="date" style="direction:ltr"></div>
+        <div><label for="genTo">تا تاریخ</label><input id="genTo" type="date" style="direction:ltr"></div>
+        <div class="row-actions" style="align-items:end"><button class="btn" id="genBtn" type="button">ساخت بازه‌ها</button></div>
+      </div>
+    </section>
+
+    <!-- Slots -->
+    <section class="card hidden" id="tab-slots">
+      <h2>بازه‌ها و ظرفیت</h2>
+      <div class="grid3">
+        <div><label for="slotDate">روز</label><input id="slotDate" type="date" style="direction:ltr"></div>
+      </div>
+      <div style="overflow-x:auto; margin-top:12px"><table>
+        <thead><tr><th>ساعت</th><th>ظرفیت</th><th>رزرو شده</th><th>وضعیت</th><th>عملیات</th></tr></thead>
+        <tbody id="slotsBody"><tr><td colspan="5" class="muted">یک روز را انتخاب کنید.</td></tr></tbody>
+      </table></div>
+    </section>
+  </div>
+</main>
+
+<script src="common.js"></script>
+<script>
+(function () {
+  const WEEKDAYS = [
+    { n: 6, label: 'شنبه' }, { n: 0, label: 'یکشنبه' }, { n: 1, label: 'دوشنبه' },
+    { n: 2, label: 'سه‌شنبه' }, { n: 3, label: 'چهارشنبه' }, { n: 4, label: 'پنج‌شنبه' }, { n: 5, label: 'جمعه' }
+  ];
+  let techs = [];
+
+  function flash(text, kind) { showMsg($('globalMsg'), text, kind); setTimeout(() => hideMsg($('globalMsg')), 4000); }
+  function fail(error) { flash(error.message || 'عملیات انجام نشد.', 'err'); }
+
+  // Login
+  async function enter(session) {
+    const uid = session.user.id;
+    const { data: prof } = await sb.from('profiles').select('role, full_name').eq('id', uid).maybeSingle();
+    if (!prof || prof.role !== 'admin') {
+      await sb.auth.signOut();
+      showMsg($('loginMsg'), 'این حساب دسترسی مدیر ندارد.', 'err');
+      return;
+    }
+    $('loginView').classList.add('hidden');
+    $('appView').classList.remove('hidden');
+    $('who').textContent = esc(prof.full_name || session.user.email);
+    $('whoBox').classList.remove('hidden');
+    $('logoutBtn').classList.remove('hidden');
+    const today = tehranToday();
+    $('genFrom').value = today;
+    $('genTo').value = addDays(today, 14);
+    $('slotDate').value = today;
+    $('holidayDate').value = today;
+    await loadTechs();
+    loadOrders();
+    loadRules();
+    loadHolidays();
+    loadSlots();
+  }
+
+  $('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    hideMsg($('loginMsg'));
+    const { data, error } = await sb.auth.signInWithPassword({ email: $('email').value.trim(), password: $('password').value });
+    if (error || !data.session) { showMsg($('loginMsg'), 'ایمیل یا رمز عبور درست نیست.', 'err'); return; }
+    await enter(data.session);
+  });
+  $('logoutBtn').addEventListener('click', async () => { await sb.auth.signOut(); location.reload(); });
+
+  // Tabs
+  document.querySelectorAll('.tabs button').forEach((b) => b.addEventListener('click', () => {
+    document.querySelectorAll('.tabs button').forEach((x) => x.classList.toggle('on', x === b));
+    ['orders', 'schedule', 'slots'].forEach((t) => $('tab-' + t).classList.toggle('hidden', t !== b.dataset.tab));
+  }));
+
+  async function loadTechs() {
+    const { data } = await sb.from('profiles').select('id, full_name').eq('role', 'technician').eq('active', true).order('full_name');
+    techs = data || [];
+  }
+
+  // Orders
+  async function loadOrders() {
+    const body = $('ordersBody');
+    const { data, error } = await sb.from('orders').select('*').order('slot_date', { ascending: false }).order('slot_time', { ascending: false }).limit(200);
+    if (error) { body.innerHTML = '<tr><td colspan="6" class="status-bad">' + esc(error.message) + '</td></tr>'; return; }
+    if (!data.length) { body.innerHTML = '<tr><td colspan="6" class="muted">سفارشی ثبت نشده است.</td></tr>'; return; }
+    body.innerHTML = data.map((o) => {
+      const techOptions = techs.map((t) => '<option value="' + esc(t.id) + '"' + (t.id === o.technician_id ? ' selected' : '') + '>' + esc(t.full_name) + '</option>').join('');
+      const statusOptions = Object.keys(STATUS_FA).map((k) => '<option value="' + k + '"' + (k === o.status ? ' selected' : '') + '>' + esc(STATUS_FA[k]) + '</option>').join('');
+      return '<tr data-id="' + esc(o.id) + '">' +
+        '<td class="code">' + esc(o.tracking_code) + '</td>' +
+        '<td>' + esc(o.customer_name) + '<br><span class="muted" style="direction:ltr;display:inline-block">' + esc(o.customer_phone) + '</span></td>' +
+        '<td>' + esc(o.neighborhood) + '، ' + esc(o.street) + '، کوچه ' + esc(o.alley) + '، پلاک ' + esc(o.plate) + '، واحد ' + esc(o.unit) + '</td>' +
+        '<td>' + esc(DEVICE_FA[o.device_type] || o.device_type) + ' ' + esc(o.device_brand) + ' ' + esc(o.device_model) + '<br><span class="muted">' + esc(o.problem_description) + '</span></td>' +
+        '<td>' + esc(faDate(o.slot_date, true)) + '<br>' + esc(hm(o.slot_time)) + '<br>' +
+          '<input type="date" class="rs-date" style="direction:ltr;margin-top:6px" value="' + esc(o.slot_date) + '">' +
+          '<input type="time" class="rs-time" style="direction:ltr;margin-top:6px" value="' + esc(hm(o.slot_time)) + '">' +
+          '<button class="btn ghost small" data-act="reschedule" style="margin-top:6px" type="button">تغییر زمان</button></td>' +
+        '<td>' +
+          '<span class="pill">' + esc(STATUS_FA[o.status] || o.status) + '</span>' +
+          '<div class="row-actions"><select class="st">' + statusOptions + '</select></div>' +
+          '<input class="note" placeholder="یادداشت مدیر" maxlength="300" value="' + esc(o.admin_note) + '" style="margin-top:6px">' +
+          '<div class="row-actions"><button class="btn small" data-act="status" type="button">ثبت وضعیت</button>' +
+            '<button class="btn small danger" data-act="cancel" type="button">لغو</button></div>' +
+          '<div class="row-actions"><select class="tech"><option value="">بدون تعمیرکار</option>' + techOptions + '</select>' +
+            '<button class="btn ghost small" data-act="assign" type="button">اختصاص</button></div>' +
+          '<textarea class="rep" placeholder="گزارش تعمیر" style="margin-top:6px;min-height:60px">' + esc(o.repair_report) + '</textarea>' +
+          '<input class="cost" type="number" min="0" placeholder="هزینه (تومان)" value="' + esc(o.repair_cost ?? '') + '" style="margin-top:6px;direction:ltr">' +
+          '<button class="btn ghost small" data-act="report" style="margin-top:6px" type="button">ذخیره گزارش</button>' +
+        '</td></tr>';
+    }).join('');
+  }
+
+  $('ordersBody').addEventListener('click', async (e) => {
+    const btn = e.target.closest('button[data-act]');
+    if (!btn) return;
+    const row = btn.closest('tr');
+    const id = row.dataset.id;
+    const act = btn.dataset.act;
+    let res;
+    if (act === 'status') {
+      res = await sb.rpc('admin_set_status', { p_id: id, p_status: row.querySelector('.st').value, p_note: row.querySelector('.note').value.trim() });
+    } else if (act === 'cancel') {
+      if (!confirm('این سفارش لغو شود؟ جای رزرو شده آزاد می‌شود.')) return;
+      res = await sb.rpc('admin_set_status', { p_id: id, p_status: 'cancelled', p_note: row.querySelector('.note').value.trim() });
+    } else if (act === 'assign') {
+      const tech = row.querySelector('.tech').value;
+      if (!tech) { flash('یک تعمیرکار را انتخاب کنید.', 'err'); return; }
+      res = await sb.rpc('admin_assign', { p_id: id, p_tech: tech });
+    } else if (act === 'reschedule') {
+      res = await sb.rpc('admin_reschedule', { p_id: id, p_date: row.querySelector('.rs-date').value, p_time: row.querySelector('.rs-time').value });
+    } else if (act === 'report') {
+      const cost = row.querySelector('.cost').value;
+      res = await sb.rpc('admin_save_report', { p_id: id, p_report: row.querySelector('.rep').value.trim(), p_cost: cost === '' ? null : Number(cost) });
+    }
+    if (res && res.error) return fail(res.error);
+    flash('ذخیره شد.', 'ok');
+    loadOrders();
+  });
+  $('reloadOrders').addEventListener('click', loadOrders);
+
+  // Schedule
+  async function loadRules() {
+    const { data } = await sb.from('schedule_rules').select('*');
+    const map = {};
+    (data || []).forEach((r) => { map[r.weekday] = r; });
+    $('rulesBody').innerHTML = WEEKDAYS.map((w) => {
+      const r = map[w.n] || { is_open: false, start_time: '09:00', end_time: '18:00', slot_minutes: 60, capacity: 1 };
+      return '<tr data-wd="' + w.n + '">' +
+        '<td>' + w.label + '</td>' +
+        '<td><input type="checkbox" class="r-open"' + (r.is_open ? ' checked' : '') + '></td>' +
+        '<td><input type="time" class="r-start" style="direction:ltr" value="' + esc(hm(r.start_time)) + '"></td>' +
+        '<td><input type="time" class="r-end" style="direction:ltr" value="' + esc(hm(r.end_time)) + '"></td>' +
+        '<td><input type="number" class="r-min" min="15" max="240" style="direction:ltr" value="' + esc(r.slot_minutes ?? 60) + '"></td>' +
+        '<td><input type="number" class="r-cap" min="0" style="direction:ltr" value="' + esc(r.capacity) + '"></td>' +
+        '</tr>';
+    }).join('');
+  }
+
+  $('saveRules').addEventListener('click', async () => {
+    const rows = [...document.querySelectorAll('#rulesBody tr')].map((tr) => ({
+      weekday: Number(tr.dataset.wd),
+      is_open: tr.querySelector('.r-open').checked,
+      start_time: tr.querySelector('.r-start').value || null,
+      end_time: tr.querySelector('.r-end').value || null,
+      slot_minutes: Number(tr.querySelector('.r-min').value) || null,
+      capacity: Number(tr.querySelector('.r-cap').value) || 0
+    }));
+    const { error } = await sb.from('schedule_rules').upsert(rows, { onConflict: 'weekday' });
+    if (error) return fail(error);
+    flash('ساعت‌کاری ذخیره شد.', 'ok');
+  });
+
+  async function loadHolidays() {
+    const { data } = await sb.from('holidays').select('*').order('holiday_date');
+    const body = $('holidaysBody');
+    if (!data || !data.length) { body.innerHTML = '<tr><td class="muted">تعطیلی ثبت نشده است.</td></tr>'; return; }
+    body.innerHTML = data.map((h) => '<tr data-d="' + esc(h.holiday_date) + '"><td>' + esc(faDate(h.holiday_date, true)) + '</td><td>' + esc(h.title) + '</td><td><button class="btn danger small" type="button" data-del>حذف</button></td></tr>').join('');
+  }
+  $('addHoliday').addEventListener('click', async () => {
+    const d = $('holidayDate').value;
+    if (!d) return flash('تاریخ را انتخاب کنید.', 'err');
+    const { error } = await sb.from('holidays').upsert({ holiday_date: d, title: $('holidayTitle').value.trim() }, { onConflict: 'holiday_date' });
+    if (error) return fail(error);
+    $('holidayTitle').value = '';
+    loadHolidays();
+  });
+  $('holidaysBody').addEventListener('click', async (e) => {
+    const b = e.target.closest('[data-del]');
+    if (!b) return;
+    const { error } = await sb.from('holidays').delete().eq('holiday_date', b.closest('tr').dataset.d);
+    if (error) return fail(error);
+    loadHolidays();
+  });
+
+  $('genBtn').addEventListener('click', async () => {
+    const { data, error } = await sb.rpc('admin_generate_slots', { p_from: $('genFrom').value, p_to: $('genTo').value });
+    if (error) return fail(error);
+    flash(data + ' بازه جدید ساخته شد.', 'ok');
+  });
+
+  // Slots
+  async function loadSlots() {
+    const d = $('slotDate').value;
+    const body = $('slotsBody');
+    if (!d) return;
+    const { data, error } = await sb.from('slots').select('*').eq('slot_date', d).order('start_time');
+    if (error) { body.innerHTML = '<tr><td colspan="5" class="status-bad">' + esc(error.message) + '</td></tr>'; return; }
+    if (!data.length) { body.innerHTML = '<tr><td colspan="5" class="muted">برای این روز بازه‌ای ساخته نشده است.</td></tr>'; return; }
+    body.innerHTML = data.map((s) => '<tr data-t="' + esc(s.start_time) + '">' +
+      '<td style="direction:ltr">' + esc(hm(s.start_time)) + '</td>' +
+      '<td><input type="number" class="s-cap" min="' + s.booked + '" value="' + s.capacity + '" style="direction:ltr;max-width:90px"></td>' +
+      '<td>' + s.booked + '</td>' +
+      '<td>' + (s.blocked ? '<span class="status-bad">مسدود</span>' : '<span class="status-ok">باز</span>') + '</td>' +
+      '<td><div class="row-actions"><button class="btn ghost small" data-act="save" type="button">ذخیره ظرفیت</button>' +
+      '<button class="btn small" data-act="block" type="button">' + (s.blocked ? 'بازکردن' : 'مسدود کردن') + '</button></div></td></tr>').join('');
+  }
+  $('slotDate').addEventListener('change', loadSlots);
+  $('slotsBody').addEventListener('click', async (e) => {
+    const b = e.target.closest('button[data-act]');
+    if (!b) return;
+    const tr = b.closest('tr');
+    const key = { slot_date: $('slotDate').value, start_time: tr.dataset.t };
+    let res;
+    if (b.dataset.act === 'save') {
+      res = await sb.from('slots').update({ capacity: Number(tr.querySelector('.s-cap').value) }).match(key);
+    } else {
+      const blocked = b.textContent.trim() === 'مسدود کردن';
+      res = await sb.from('slots').update({ blocked }).match(key);
+    }
+    if (res.error) return fail(res.error);
+    flash('ذخیره شد.', 'ok');
+    loadSlots();
+  });
+
+  // Restore an existing session on reload
+  sb.auth.getSession().then(({ data }) => { if (data.session) enter(data.session); });
+})();
+</script>
+</body>
+</html>

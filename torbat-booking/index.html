@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>رزرو تعمیرکار در محل · تربت جام</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lalezar&family=Vazirmatn:wght@300;400;600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+<header class="topbar">
+  <div class="wrap">
+    <a class="brand" href="index.html">تعمیرات لوازم خانگی · تربت جام</a>
+    <nav>
+      <a class="active" href="index.html">رزرو نوبت</a>
+      <a href="#track">پیگیری سفارش</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="card">
+    <h1>رزرو تعمیرکار در محل شما</h1>
+    <p class="muted">فرم را کامل کنید و یک بازه آزاد را انتخاب کنید. بعد از ثبت، کد پیگیری دریافت می‌کنید.</p>
+  </section>
+
+  <section class="card">
+    <h2>اطلاعات سفارش</h2>
+    <form id="orderForm" novalidate>
+      <div class="grid2">
+        <div><label for="name">نام و نام خانوادگی</label><input id="name" required maxlength="100" autocomplete="name"></div>
+        <div><label for="phone">شماره تلفن همراه</label><input id="phone" required inputmode="numeric" placeholder="09xxxxxxxxx" maxlength="11" autocomplete="tel"></div>
+        <div><label for="city">شهر</label><input id="city" value="تربت جام" disabled></div>
+        <div><label for="neighborhood">محله</label><input id="neighborhood" required maxlength="100"></div>
+        <div><label for="street">خیابان</label><input id="street" required maxlength="150"></div>
+        <div><label for="alley">کوچه</label><input id="alley" maxlength="100"></div>
+        <div><label for="plate">پلاک</label><input id="plate" required maxlength="20"></div>
+        <div><label for="unit">واحد</label><input id="unit" maxlength="20"></div>
+      </div>
+
+      <h2 style="margin-top:22px">دستگاه</h2>
+      <div class="grid3">
+        <div>
+          <label for="deviceType">نوع دستگاه</label>
+          <select id="deviceType" required>
+            <option value="">انتخاب کنید</option>
+            <option value="fridge">یخچال</option>
+            <option value="side_by_side">ساید بای ساید</option>
+            <option value="washer">لباسشویی</option>
+            <option value="dishwasher">ظرفشویی</option>
+            <option value="ac">کولر</option>
+            <option value="other">سایر</option>
+          </select>
+        </div>
+        <div><label for="brand">برند دستگاه</label><input id="brand" required maxlength="60"></div>
+        <div><label for="model">مدل دستگاه (اختیاری)</label><input id="model" maxlength="60"></div>
+        <div class="full"><label for="problem">شرح کامل مشکل</label><textarea id="problem" required maxlength="2000" placeholder="مثلاً: یخچال سرد نمی‌کند و صدای زیاد می‌دهد."></textarea></div>
+      </div>
+
+      <h2 style="margin-top:22px">تاریخ و ساعت مراجعه</h2>
+      <p class="muted" id="slotHint">در حال دریافت ساعت‌های آزاد...</p>
+      <div id="dateBox" class="hidden">
+        <label>روز مراجعه</label>
+        <div class="slot-grid" id="dateButtons"></div>
+      </div>
+      <div id="timeBox" class="hidden" style="margin-top:14px">
+        <label>ساعت مراجعه (فقط ساعت‌های آزاد)</label>
+        <div class="slot-grid" id="timeButtons"></div>
+      </div>
+
+      <div class="row-actions" style="margin-top:22px">
+        <button class="btn" id="submitBtn" type="submit" disabled>ثبت سفارش</button>
+      </div>
+      <div id="orderMsg" class="msg hidden"></div>
+    </form>
+  </section>
+
+  <section class="card" id="track">
+    <h2>پیگیری سفارش</h2>
+    <p class="muted">کد پیگیری را که بعد از ثبت سفارش دریافت کرده‌اید وارد کنید.</p>
+    <div class="row-actions">
+      <input id="trackCode" maxlength="12" placeholder="کد پیگیری" style="max-width:260px;direction:ltr">
+      <button class="btn ghost" id="trackBtn" type="button">نمایش وضعیت</button>
+    </div>
+    <div id="trackResult" class="hidden" style="margin-top:14px"></div>
+    <div id="trackMsg" class="msg hidden"></div>
+  </section>
+</main>
+
+<script src="common.js"></script>
+<script>
+(function () {
+  let chosenDate = null;
+  let chosenTime = null;
+  let slotsByDate = {};
+
+  const submitBtn = $('submitBtn');
+  const orderMsg = $('orderMsg');
+
+  function refreshSubmit() {
+    submitBtn.disabled = !(chosenDate && chosenTime);
+  }
+
+  async function loadSlots() {
+    const from = tehranToday();
+    const to = addDays(from, 14);
+    const { data, error } = await sb.rpc('get_available_slots', { p_from: from, p_to: to });
+    if (error) {
+      $('slotHint').textContent = 'دریافت ساعت‌های آزاد با خطا روبه‌رو شد. صفحه را دوباره بارگذاری کنید.';
+      return;
+    }
+    slotsByDate = {};
+    (data || []).forEach((row) => {
+      (slotsByDate[row.slot_date] = slotsByDate[row.slot_date] || []).push(row);
+    });
+    const dates = Object.keys(slotsByDate).sort();
+    if (!dates.length) {
+      $('slotHint').textContent = 'در حال حاضر بازه آزادی برای مراجعه وجود ندارد.';
+      return;
+    }
+    $('slotHint').textContent = 'فقط ساعت‌های آزادی که تعمیرکار اعلام کرده نمایش داده می‌شود.';
+    const box = $('dateButtons');
+    box.innerHTML = '';
+    dates.forEach((d) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = faDate(d, true);
+      b.addEventListener('click', () => pickDate(d, b));
+      box.appendChild(b);
+    });
+    $('dateBox').classList.remove('hidden');
+  }
+
+  function pickDate(d, btn) {
+    chosenDate = d;
+    chosenTime = null;
+    document.querySelectorAll('#dateButtons button').forEach((x) => x.classList.toggle('on', x === btn));
+    const box = $('timeButtons');
+    box.innerHTML = '';
+    slotsByDate[d].forEach((s) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = hm(s.start_time) + ' (' + s.remaining + ' نفر باقی‌مانده)';
+      b.addEventListener('click', () => {
+        chosenTime = s.start_time;
+        document.querySelectorAll('#timeButtons button').forEach((x) => x.classList.toggle('on', x === b));
+        refreshSubmit();
+      });
+      box.appendChild(b);
+    });
+    $('timeBox').classList.remove('hidden');
+    refreshSubmit();
+  }
+
+  function val(id) { return $(id).value.trim(); }
+
+  $('orderForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    hideMsg(orderMsg);
+    const required = ['name', 'phone', 'neighborhood', 'street', 'plate', 'deviceType', 'brand', 'problem'];
+    for (const id of required) {
+      if (!val(id)) { showMsg(orderMsg, 'لطفاً همه فیلدهای ستاره‌دار را پر کنید.', 'err'); return; }
+    }
+    if (!/^09[0-9]{9}$/.test(val('phone'))) { showMsg(orderMsg, 'شماره تلفن باید ۱۱ رقم و با ۰۹ شروع شود.', 'err'); return; }
+    if (!chosenDate || !chosenTime) { showMsg(orderMsg, 'روز و ساعت مراجعه را انتخاب کنید.', 'err'); return; }
+
+    submitBtn.disabled = true;
+    const { data, error } = await sb.rpc('create_order', {
+      p_name: val('name'),
+      p_phone: val('phone'),
+      p_neighborhood: val('neighborhood'),
+      p_street: val('street'),
+      p_alley: val('alley'),
+      p_plate: val('plate'),
+      p_unit: val('unit'),
+      p_device_type: val('deviceType'),
+      p_device_brand: val('brand'),
+      p_device_model: val('model'),
+      p_problem: val('problem'),
+      p_date: chosenDate,
+      p_time: chosenTime
+    });
+    submitBtn.disabled = false;
+    if (error) {
+      showMsg(orderMsg, error.message || 'ثبت سفارش انجام نشد.', 'err');
+      await loadSlots();
+      return;
+    }
+    showMsg(orderMsg, 'سفارش شما ثبت شد. کد پیگیری: ' + data, 'ok');
+    $('trackCode').value = data;
+    e.target.reset();
+    chosenDate = null; chosenTime = null;
+    $('timeBox').classList.add('hidden');
+    await loadSlots();
+    refreshSubmit();
+  });
+
+  $('trackBtn').addEventListener('click', async () => {
+    const code = val('trackCode').toUpperCase();
+    const out = $('trackResult');
+    hideMsg($('trackMsg'));
+    out.classList.add('hidden');
+    if (!code) { showMsg($('trackMsg'), 'کد پیگیری را وارد کنید.', 'err'); return; }
+    const { data, error } = await sb.rpc('track_order', { p_code: code });
+    if (error) { showMsg($('trackMsg'), 'بررسی انجام نشد. دوباره تلاش کنید.', 'err'); return; }
+    const row = (data || [])[0];
+    if (!row) { showMsg($('trackMsg'), 'سفارشی با این کد پیدا نشد.', 'err'); return; }
+    out.innerHTML =
+      '<p>وضعیت: <span class="pill">' + esc(STATUS_FA[row.status] || row.status) + '</span></p>' +
+      '<p class="muted">مراجعه: ' + esc(faDate(row.slot_date, true)) + ' ساعت ' + esc(hm(row.slot_time)) + '</p>' +
+      '<p class="muted">دستگاه: ' + esc(DEVICE_FA[row.device_type] || row.device_type) + ' ' + esc(row.device_brand) + '</p>';
+    out.classList.remove('hidden');
+  });
+
+  loadSlots();
+})();
+</script>
+</body>
+</html>
